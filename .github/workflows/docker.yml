@@ -1,0 +1,24 @@
+name: Docker
+
+on:
+  push:
+    branches:
+      - 'main'
+
+jobs:
+  library:
+    name: Deploy Python Image
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Publish Docker Image
+        uses: openzim/docker-publish-action@v5
+        with:
+          image-name: rgaudin/python-ubuntu
+          on-master: 3.8-18.04
+          restrict-to: rgaudin/python-ubuntu-docker
+          credentials:
+            GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
+            GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
+            DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
