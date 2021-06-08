@@ -1,5 +1,7 @@
 FROM ubuntu:18.04
 
+LABEL org.opencontainers.image.source = "https://github.com/rgaudin/docker-images"
+
 # ensure local python is preferred over distribution python
 ENV PATH /usr/local/bin:$PATH
 
