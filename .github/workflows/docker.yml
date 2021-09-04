@@ -4,21 +4,57 @@ on:
   push:
     branches:
       - 'main'
+  schedule:
+    # every months on the 1st
+    - cron:  '0 4 * * *'
 
 jobs:
-  library:
-    name: Deploy Python Image
+  # python-ubuntu:
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: openzim/docker-publish-action@v5
+  #       with:
+  #         image-name: rgaudin/python-ubuntu
+  #         on-master: 3.8-18.04
+  #         restrict-to: rgaudin/python-ubuntu-docker
+  #         credentials:
+  #           GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
+  #           GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
+  #           DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+  #           DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
+
+  # python-redis:
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: openzim/docker-publish-action@v5
+  #       with:
+  #         image-name: rgaudin/python-redis
+  #         on-master: 3.8-6.2.4
+  #         restrict-to: rgaudin/python-ubuntu-docker
+  #         credentials:
+  #           GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
+  #           GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
+  #           DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+  #           DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
+
+  kiwix-tools:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Publish Docker Image
-        uses: openzim/docker-publish-action@v5
+      - uses: openzim/docker-publish-action@v5
         with:
-          image-name: rgaudin/python-ubuntu
-          on-master: 3.8-18.04
-          restrict-to: rgaudin/python-ubuntu-docker
-          credentials:
+          image-name: rgaudin/kiwix-tools
+          credentials: |
             GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
             GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
             DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
+          context: kiwix-tools
+          on-master: nightly
+          platforms: |
+            linux/amd64
+            linux/arm/v7
+            linux/arm64
+          restrict-to: rgaudin/docker-images
