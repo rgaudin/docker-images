@@ -34,4 +34,8 @@ RUN url="http://download.kiwix.org/nightly/$(cat /etc/kiwix-tools_version)/kiwix
 # expose kiwix-serve default port
 EXPOSE 80
 
+COPY kiwix-serve-folder.sh /usr/local/bin/kiwix-serve-folder
+COPY gen-kiwix-library.sh /usr/local/bin/gen-kiwix-library
+RUN chmod +x /usr/local/bin/kiwix-serve-folder /usr/local/bin/gen-kiwix-library
+
 CMD ["/bin/sh", "-c", "echo \"Welcome to kiwix-tools $(cat /etc/kiwix-tools_version)! The following binaries are available:\" && ls /usr/local/bin/"]
