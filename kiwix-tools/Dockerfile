@@ -23,7 +23,6 @@ RUN if [ $(cut -c 1-3 /etc/docker_arch) = "arm" ] ; then echo "armhf" > /etc/kiw
 RUN date +"%Y-%m-%d" > /etc/kiwix-tools_version
 RUN if [ ! -z "$VERSION" ] ; then echo "$VERSION" > /etc/kiwix-tools_version ; fi
 
-
 # Install kiwix-tools
 RUN url="http://download.kiwix.org/nightly/$(cat /etc/kiwix-tools_version)/kiwix-tools_linux-$(cat /etc/kiwix_arch)-$(cat /etc/kiwix-tools_version).tar.gz" && \
     echo "URL: $url" && \
@@ -34,6 +33,7 @@ RUN url="http://download.kiwix.org/nightly/$(cat /etc/kiwix-tools_version)/kiwix
 # expose kiwix-serve default port
 EXPOSE 80
 
+ENV LIBRARY_PATH ""
 COPY kiwix-serve-folder.sh /usr/local/bin/kiwix-serve-folder
 COPY gen-kiwix-library.sh /usr/local/bin/gen-kiwix-library
 RUN chmod +x /usr/local/bin/kiwix-serve-folder /usr/local/bin/gen-kiwix-library

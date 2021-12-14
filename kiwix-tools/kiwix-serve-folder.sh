@@ -10,7 +10,13 @@ then
     exit 1
 fi
 
-AUTO_LIBRARY_FILE=$FOLDER/auto-library.xml
+if [ -z "$LIBRARY_PATH" ];
+then
+    AUTO_LIBRARY_FILE=$FOLDER/auto-library.xml
+else
+    AUTO_LIBRARY_FILE=$LIBRARY_PATH
+fi
+
 printf "#!/bin/sh\ngen-kiwix-library $FOLDER\n" > /usr/local/bin/refresh-library && \
 chmod +x /usr/local/bin/refresh-library
 

@@ -8,7 +8,12 @@ then
     exit 1
 fi
 
-AUTO_LIBRARY_FILE=$FOLDER/auto-library.xml
+if [ -z "$LIBRARY_PATH" ];
+then
+    AUTO_LIBRARY_FILE=$FOLDER/auto-library.xml
+else
+    AUTO_LIBRARY_FILE=$LIBRARY_PATH
+fi
 AUTO_LIBRARY_FILE_TEMP=$AUTO_LIBRARY_FILE.tmp
 
 rm -f $AUTO_LIBRARY_FILE_TEMP
