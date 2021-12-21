@@ -1,3 +1,11 @@
+
+# dumb-init to use as entrypoint so it can forward signals to our CMD
+FROM debian:bullseye-slim as builder
+RUN apt-get update -y && apt-get install -y build-essential musl-tools wget unzip make
+RUN wget https://github.com/Yelp/dumb-init/archive/refs/tags/v1.2.5.zip
+RUN unzip v1.2.5.zip
+RUN cd dumb-init-1.2.5 && make
+
 # declare build option ARCH if not using buildx
 ARG ARCH=
 # declare version to build image for
@@ -12,7 +20,10 @@ ARG TARGETARCH
 ARG VERSION
 ARG ARCH
 
-# if we had no TARGETARCH (not buildx), use --build-arg ARCH. default to amd64
+# copy built dumb-init
+COPY --from=builder /dumb-init-1.2.5/dumb-init /usr/bin/dumb-init
+
+# defaulting to amd64
 RUN echo "amd64" > /etc/docker_arch
 RUN if [ ! -z "$ARCH" ] ; then echo "$ARCH" > /etc/docker_arch ; fi
 RUN if [ ! -z "$TARGETARCH" ] ; then echo "$TARGETARCH" > /etc/docker_arch ; fi
@@ -30,6 +41,7 @@ RUN url="http://download.kiwix.org/nightly/$(cat /etc/kiwix-tools_version)/kiwix
     mv kiwix-tools*/kiwix-* /usr/local/bin && \
     rm -r kiwix-tools*
 
+
 # expose kiwix-serve default port
 EXPOSE 80
 
@@ -38,4 +50,5 @@ COPY kiwix-serve-folder.sh /usr/local/bin/kiwix-serve-folder
 COPY gen-kiwix-library.sh /usr/local/bin/gen-kiwix-library
 RUN chmod +x /usr/local/bin/kiwix-serve-folder /usr/local/bin/gen-kiwix-library
 
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["/bin/sh", "-c", "echo \"Welcome to kiwix-tools $(cat /etc/kiwix-tools_version)! The following binaries are available:\" && ls /usr/local/bin/"]
