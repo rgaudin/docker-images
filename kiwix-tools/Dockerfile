@@ -4,7 +4,7 @@ FROM debian:bullseye-slim as builder
 RUN apt-get update -y && apt-get install -y build-essential musl-tools wget unzip make
 RUN wget https://github.com/Yelp/dumb-init/archive/refs/tags/v1.2.5.zip
 RUN unzip v1.2.5.zip
-RUN cd dumb-init-1.2.5 && make
+RUN cd dumb-init-1.2.5 && CC=musl-gcc make
 
 # declare build option ARCH if not using buildx
 ARG ARCH=
