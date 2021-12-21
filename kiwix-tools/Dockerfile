@@ -1,10 +1,13 @@
-
 # dumb-init to use as entrypoint so it can forward signals to our CMD
 FROM debian:bullseye-slim as builder
-RUN apt-get update -y && apt-get install -y build-essential musl-tools wget unzip make
-RUN wget https://github.com/Yelp/dumb-init/archive/refs/tags/v1.2.5.zip
-RUN unzip v1.2.5.zip
-RUN cd dumb-init-1.2.5 && CC=musl-gcc make
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends \
+    ca-certificates build-essential musl-tools wget unzip make \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+# compile dumb-init
+RUN wget -nv https://github.com/Yelp/dumb-init/archive/refs/tags/v1.2.5.zip && \
+    unzip v1.2.5.zip && cd dumb-init-1.2.5 && CC=musl-gcc make
 
 # declare build option ARCH if not using buildx
 ARG ARCH=
@@ -23,10 +26,11 @@ ARG ARCH
 # copy built dumb-init
 COPY --from=builder /dumb-init-1.2.5/dumb-init /usr/bin/dumb-init
 
-# defaulting to amd64
-RUN echo "amd64" > /etc/docker_arch
-RUN if [ ! -z "$ARCH" ] ; then echo "$ARCH" > /etc/docker_arch ; fi
-RUN if [ ! -z "$TARGETARCH" ] ; then echo "$TARGETARCH" > /etc/docker_arch ; fi
+# find and store arch in image, using (in this order):
+# $TARGETARCH || --build-arg ARCH (not using buildx) || amd64
+RUN echo "amd64" > /etc/docker_arch && \
+    if [ ! -z "$ARCH" ] ; then echo "$ARCH" > /etc/docker_arch ; fi && \
+    if [ ! -z "$TARGETARCH" ] ; then echo "$TARGETARCH" > /etc/docker_arch ; fi
 
 # decide which kiwix arch to download later (`armhf` for all arm* and x86_64 otherwise)
 RUN if [ $(cut -c 1-3 /etc/docker_arch) = "arm" ] ; then echo "armhf" > /etc/kiwix_arch ; else echo "x86_64" > /etc/kiwix_arch ; fi
@@ -37,10 +41,9 @@ RUN if [ ! -z "$VERSION" ] ; then echo "$VERSION" > /etc/kiwix-tools_version ; f
 # Install kiwix-tools
 RUN url="http://download.kiwix.org/nightly/$(cat /etc/kiwix-tools_version)/kiwix-tools_linux-$(cat /etc/kiwix_arch)-$(cat /etc/kiwix-tools_version).tar.gz" && \
     echo "URL: $url" && \
-    wget -O - $url | tar -xz && \
+    wget -q -O - $url | tar -xz && \
     mv kiwix-tools*/kiwix-* /usr/local/bin && \
     rm -r kiwix-tools*
-
 
 # expose kiwix-serve default port
 EXPOSE 80
