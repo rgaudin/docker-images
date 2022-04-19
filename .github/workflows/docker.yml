@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: openzim/docker-publish-action@v6
+      - uses: openzim/docker-publish-action@v8
         with:
           image-name: rgaudin/kiwix-tools
           credentials: |
@@ -56,4 +56,20 @@ jobs:
             linux/amd64
             linux/arm/v7
             linux/arm64
+          restrict-to: rgaudin/docker-images
+
+  debian:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: openzim/docker-publish-action@v8
+        with:
+          image-name: rgaudin/debian
+          credentials: |
+            GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
+            GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
+            DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
+          context: debian
+          on-master: dev
           restrict-to: rgaudin/docker-images
