@@ -14,7 +14,7 @@ RUN apt-get update -y \
 
 VOLUME /data
 
-RUN pip install -U "zimscraperlib>=1.4.2,<1.5" && \
+RUN pip install -U "zimscraperlib>=1.4.3,<1.5" && \
     printf "#!/bin/bash\n\n\
 chmod +x /usr/local/bin/* 2> /dev/null\n\n\
 \
