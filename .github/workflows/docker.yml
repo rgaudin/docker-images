@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: openzim/docker-publish-action@v8
+      - uses: openzim/docker-publish-action@v9
         with:
           image-name: rgaudin/kiwix-tools
           credentials: |
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: openzim/docker-publish-action@v8
+      - uses: openzim/docker-publish-action@v9
         with:
           image-name: rgaudin/debian
           credentials: |
