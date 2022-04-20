@@ -1,3 +1,4 @@
+
 FROM docker.io/library/python:3.9-slim
 
 # debian-slim based python container with libzim
@@ -6,7 +7,6 @@ RUN apt-get update -y \
     && apt-get install -y --no-install-recommends vim cron libmagic1 wget \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && pip install -U zimscraperlib \
     && mkdir -p /scripts && \
     wget -O /sbin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64 \
     && chmod +x /sbin/dumb-init && \
@@ -14,7 +14,8 @@ RUN apt-get update -y \
 
 VOLUME /data
 
-RUN printf "#!/bin/bash\n\n\
+RUN pip install -U "zimscraperlib>=1.4.2,<1.5" && \
+    printf "#!/bin/bash\n\n\
 chmod +x /usr/local/bin/* 2> /dev/null\n\n\
 \
 if [ -f /usr/local/bin/startup ]; then\n\
