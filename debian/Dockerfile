@@ -14,10 +14,17 @@ RUN apt-get update -y \
 
 VOLUME /data
 
-RUN pip install -U "zimscraperlib>=1.4.3,<1.5" && \
+RUN pip install -U "zimscraperlib>=1.4.3,<1.5" "unidecode==1.3.4" \
+                   "mwclient==0.10.1" "humanfriendly>=8.0,<=11.0" && \
     printf "#!/bin/bash\n\n\
+\
+# install scripts and pydeps from ENV\n\
+/usr/sbin/install-scripts\n\n\
+\
+# make sure all scripts (installed and mounted) are executable\n\
 chmod +x /usr/local/bin/* 2> /dev/null\n\n\
 \
+# run startup script if present\n\
 if [ -f /usr/local/bin/startup ]; then\n\
     echo \"Launching startup script…\"\n\
     /usr/local/bin/startup || exit \$?\n\
@@ -25,6 +32,11 @@ fi\n\n\
 \
 echo \"starting…\"\n\
 exec \"\$@\"" > /sbin/entrypoint && chmod +x /sbin/entrypoint
+
+COPY install_scripts.py /usr/sbin/install-scripts
+ENV INSTALL_SCRIPTS_TO /usr/local/bin
+ENV INSTALL_SCRIPTS ""
+ENV PIP_INSTALL ""
 
 ENTRYPOINT ["dumb-init", "--", "entrypoint"]
 CMD ["cron", "-f"]
