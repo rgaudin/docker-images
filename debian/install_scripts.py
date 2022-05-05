@@ -19,6 +19,7 @@ r""" Downloads and installs scripts from URLs in INSTALL_SCRIPTS and PIP_INSTALL
 import json
 import os
 import pathlib
+import re
 import subprocess
 import sys
 import traceback
@@ -58,18 +59,18 @@ def to_script_tuple(line):
 
 def install_script(name, url):
     fpath = TARGET_FOLDER / name
-    with open(fpath, "wb") as fh:
-        with urllib.request.urlopen(url) as resp:
-            if resp.status != 200:
-                raise ValueError(
-                    "Unexpected HTTP {resp.status}/{resp.reason} from {url}"
-                )
-            contenttype = resp.getheader("Content-Type")
-            if contenttype and (
-                not contenttype.startswith("text/plain")
-                and not contenttype.startswith("application/octet-stream")
-            ):
-                raise ValueError(f"Unexpected Content-Type: {contenttype} from {url}")
+    with urllib.request.urlopen(url) as resp:
+        if resp.status != 200:
+            raise ValueError(
+                "Unexpected HTTP {resp.status}/{resp.reason} from {url}"
+            )
+        contenttype = resp.getheader("Content-Type")
+        if contenttype and (
+            not contenttype.startswith("text/plain")
+            and not contenttype.startswith("application/octet-stream")
+        ):
+            raise ValueError(f"Unexpected Content-Type: {contenttype} from {url}")
+        with open(fpath, "wb") as fh:
             fh.write(resp.read())
     fpath.chmod(0o755)
     return fpath
@@ -86,7 +87,7 @@ def main(args):
             shell=True,  # allows using quotes to specify versions and ranges
         )
 
-    for line in os.getenv("INSTALL_SCRIPTS", "").split(r"\n"):
+    for line in re.split(r"\r?\n", os.getenv("INSTALL_SCRIPTS", "")):
         try:
             name, url = to_script_tuple(line.strip())
             script = install_script(name, url)
