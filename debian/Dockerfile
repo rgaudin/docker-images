@@ -15,8 +15,10 @@ RUN apt-get update -y \
 VOLUME /data
 
 RUN pip install -U "zimscraperlib>=1.4.3,<1.5" "unidecode==1.3.4" \
-                   "mwclient==0.10.1" "humanfriendly>=8.0,<=11.0" && \
+                   "mwclient==0.10.1" "humanfriendly>=8.0,<=11.0" \
+                   "pyyaml==6.0" "pycountry" "jinja2>=3.1.2,<4.0" && \
     printf "#!/bin/bash\n\n\
+set -e\n\
 \
 # install scripts and pydeps from ENV\n\
 /usr/sbin/install-scripts\n\n\
