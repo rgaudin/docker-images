@@ -4,7 +4,7 @@ FROM docker.io/library/python:3.9-slim
 # debian-slim based python container with libzim
 
 RUN apt-get update -y \
-    && apt-get install -y --no-install-recommends vim cron libmagic1 wget \
+    && apt-get install -y --no-install-recommends vim cron libmagic1 wget curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /scripts && \
