@@ -88,6 +88,8 @@ def main(args):
         )
 
     for line in re.split(r"\r?\n", os.getenv("INSTALL_SCRIPTS", "")):
+        if not line:
+            continue
         try:
             name, url = to_script_tuple(line.strip())
             script = install_script(name, url)
