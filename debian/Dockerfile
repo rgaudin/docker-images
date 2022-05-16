@@ -35,6 +35,12 @@ fi\n\n\
 echo \"starting…\"\n\
 exec \"\$@\"" > /sbin/entrypoint && chmod +x /sbin/entrypoint
 
+ARG KUBECTL_VERSION="1.23.3"
+
+RUN curl -sLo /usr/bin/kubectl \
+    "https://storage.googleapis.com/kubernetes-release/release/v$KUBECTL_VERSION/bin/linux/amd64/kubectl" && \
+    chmod +x /usr/bin/kubectl
+
 COPY install_scripts.py /usr/sbin/install-scripts
 ENV INSTALL_SCRIPTS_TO /usr/local/bin
 ENV INSTALL_SCRIPTS ""
