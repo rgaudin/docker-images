@@ -4,13 +4,21 @@ FROM docker.io/library/python:3.9-slim
 # debian-slim based python container with libzim
 
 RUN apt-get update -y \
-    && apt-get install -y --no-install-recommends vim cron libmagic1 wget curl \
+    && apt-get install -y --no-install-recommends \
+    locales vim cron libmagic1 wget curl openssh-server \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /scripts && \
     wget -O /sbin/dumb-init https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_x86_64 \
     && chmod +x /sbin/dumb-init && \
     mkdir -p /data
+
+ENV TZ "UTC"
+RUN echo "UTC" >  /etc/timezone \
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
 
 VOLUME /data
 
