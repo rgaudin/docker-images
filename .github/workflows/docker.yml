@@ -72,3 +72,23 @@ jobs:
           context: debian
           on-master: dev
           restrict-to: rgaudin/docker-images
+
+  base-server:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: openzim/docker-publish-action@v9
+        with:
+          image-name: rgaudin/base-server
+          credentials: |
+            GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
+            GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
+            DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
+          platforms: |
+            linux/amd64
+            linux/arm/v7
+            linux/arm64
+          context: base-server
+          on-master: latest
+          restrict-to: rgaudin/docker-images
