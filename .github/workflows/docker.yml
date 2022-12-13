@@ -56,6 +56,12 @@ jobs:
             linux/arm/v7
             linux/arm64
           restrict-to: rgaudin/docker-images
+      - name: Restart dev-library
+        uses: actions-hub/kubectl@master
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        with:
+          args: rollout restart deployments dev-library-deployment -n zim
 
   debian:
     runs-on: ubuntu-20.04
