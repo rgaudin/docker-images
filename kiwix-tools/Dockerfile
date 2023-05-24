@@ -1,57 +1,36 @@
-# dumb-init to use as entrypoint so it can forward signals to our CMD
-FROM debian:bullseye-slim as builder
-RUN apt-get update -y \
-    && apt-get install -y --no-install-recommends \
-    ca-certificates build-essential musl-tools wget unzip make \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-# compile dumb-init
-RUN wget -nv https://github.com/Yelp/dumb-init/archive/refs/tags/v1.2.5.zip && \
-    unzip v1.2.5.zip && cd dumb-init-1.2.5 && CC=musl-gcc make
-
-# declare build option ARCH if not using buildx
-ARG ARCH=
-# declare version to build image for
-ARG VERSION=
-
-# alpine is a multi-arch image
-FROM alpine:3
+FROM alpine:3.18
 LABEL org.opencontainers.image.source https://github.com/openzim/kiwix-tools
 
-# TARGETARCH is injected by buildx
-ARG TARGETARCH
+# TARGETPLATFORM is injected by docker build
+ARG TARGETPLATFORM
 ARG VERSION
-ARG ARCH
 
-# copy built dumb-init
-COPY --from=builder /dumb-init-1.2.5/dumb-init /usr/bin/dumb-init
-
-# find and store arch in image, using (in this order):
-# $TARGETARCH || --build-arg ARCH (not using buildx) || amd64
-RUN echo "amd64" > /etc/docker_arch && \
-    if [ ! -z "$ARCH" ] ; then echo "$ARCH" > /etc/docker_arch ; fi && \
-    if [ ! -z "$TARGETARCH" ] ; then echo "$TARGETARCH" > /etc/docker_arch ; fi
-
-# decide which kiwix arch to download later (`armhf` for all arm* and x86_64 otherwise)
-RUN if [ $(cut -c 1-3 /etc/docker_arch) = "arm" ] ; then echo "armhf" > /etc/kiwix_arch ; else echo "x86_64" > /etc/kiwix_arch ; fi
-
-RUN date +"%Y-%m-%d" > /etc/kiwix-tools_version
-RUN if [ ! -z "$VERSION" ] ; then echo "$VERSION" > /etc/kiwix-tools_version ; fi
-
-# Install kiwix-tools
-RUN url="http://download.kiwix.org/nightly/$(cat /etc/kiwix-tools_version)/kiwix-tools_linux-$(cat /etc/kiwix_arch)-$(cat /etc/kiwix-tools_version).tar.gz" && \
+RUN set -e && \
+    # default (no VERSION set) to today's nightly
+    if [ -z "$VERSION" ] ; then VERSION=$(date +"%Y-%m-%d") ; fi && \
+    apk --no-cache add dumb-init curl && \
+    echo "TARGETPLATFORM: $TARGETPLATFORM" && \
+    if [ "$TARGETPLATFORM" = "linux/386" ]; then ARCH="i586"; \
+    # linux/arm64/v8 points to linux/arm64
+    elif [ "$TARGETPLATFORM" = "linux/arm64/v8" \
+        -o "$TARGETPLATFORM" = "linux/arm64" ]; then ARCH="aarch64"; \
+    # linux/arm translates to linux/arm/v7
+    elif [ "$TARGETPLATFORM" = "linux/arm/v7" ]; then ARCH="armv8"; \
+    elif [ "$TARGETPLATFORM" = "linux/arm/v6" ]; then ARCH="armv6"; \
+    elif [ "$TARGETPLATFORM" = "linux/amd64/v3" \
+        -o "$TARGETPLATFORM" = "linux/amd64/v2" \
+        -o "$TARGETPLATFORM" = "linux/amd64" ]; then ARCH="x86_64"; \
+    # we dont suppot any other arch so let it fail
+    else ARCH="unknown"; fi && \
+    # download requested kiwix-tools version
+    url="http://mirror.download.kiwix.org/nightly/$VERSION/kiwix-tools_linux-$ARCH-$VERSION.tar.gz" && \
     echo "URL: $url" && \
-    wget -q -O - $url | tar -xz && \
-    mv kiwix-tools*/kiwix-* /usr/local/bin && \
-    rm -r kiwix-tools*
+    curl -k -L $url | tar -xz -C /usr/local/bin/ --strip-components 1 && \
+    # only needed in dockerfile
+    apk del curl
 
 # expose kiwix-serve default port
 EXPOSE 80
 
-ENV LIBRARY_PATH ""
-COPY kiwix-serve-folder.sh /usr/local/bin/kiwix-serve-folder
-COPY gen-kiwix-library.sh /usr/local/bin/gen-kiwix-library
-RUN chmod +x /usr/local/bin/kiwix-serve-folder /usr/local/bin/gen-kiwix-library
-
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["/bin/sh", "-c", "echo \"Welcome to kiwix-tools $(cat /etc/kiwix-tools_version)! The following binaries are available:\" && ls /usr/local/bin/"]
+CMD ["/bin/sh", "-c", "echo 'Welcome to kiwix-tools! The following binaries are available:' && ls /usr/local/bin/"]
