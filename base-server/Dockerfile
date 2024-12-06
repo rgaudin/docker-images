@@ -1,4 +1,4 @@
-FROM alpine:3 as builder
+FROM alpine:3.20 as builder
 RUN apk --no-cache add build-base gcc make
 RUN wget https://www.acme.com/software/thttpd/thttpd-2.29.tar.gz && \
     tar xf thttpd-2.29.tar.gz && \
@@ -11,7 +11,7 @@ RUN wget https://www.acme.com/software/thttpd/thttpd-2.29.tar.gz && \
     mv thttpd-2.29/thttpd / && \
     rm -rf ./thttpd-2.29
 
-FROM alpine:3
+FROM alpine:3.20
 COPY --from=builder /thttpd /usr/sbin/thttpd
 WORKDIR /var/www/
 EXPOSE 80
